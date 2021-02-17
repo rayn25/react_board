@@ -22,7 +22,8 @@ class App extends Component {
               brdtitle: 'Founder for two countries',
               brddate: new Date()
           }
-      ]
+      ],
+      selectedBoard: {}
   }
 
   handleSaveData = (data) => {
@@ -46,11 +47,12 @@ class App extends Component {
   }
 
   handleSelectRow = (row) => {
-    this.child.current.handleSelectRow(row);
+    this.setState({selectedBoard:row})
+    //this.child.current.handleSelectRow(row);
   }
 
   render() {
-      const { boards } = this.state;
+      const { boards, selectedBoard } = this.state;
       //const boards = this.state.boards;
       // const list = boards.map(function(row){
       //     return row.brdno + row.brdwriter;
@@ -58,7 +60,7 @@ class App extends Component {
 
       return (
           <div>
-              <BoardForm onSaveData={this.handleSaveData} ref={this.child}/>
+              <BoardForm selectedBoard={selectedBoard} onSaveData={this.handleSaveData}/>
               <table border="1">
                   <tbody>
                   <tr align="center">
@@ -91,7 +93,6 @@ class BoardItem extends React.Component {
     }
 
     render() {
-        console.log(this.props.row.brdno);
         return (
             <tr>
                 <td>{this.props.row.brdno}</td>
@@ -105,36 +106,63 @@ class BoardItem extends React.Component {
 }
 
 class BoardForm extends Component {
-    state = {
-        brdwriter:'',
-        brdtitle:''
-    }
+    // state = {
+    //     brdwriter:'',
+    //     brdtitle:''
+    // }
 
-    handleChange = (e) => {
-        this.setState({
-            [e.target.name]: e.target.value
-        })
+    // handleChange = (e) => {
+    //     this.setState({
+    //         [e.target.name]: e.target.value
+    //     })
+    // }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        console.log(nextProps);
+        let selectedBoard = nextProps.selectedBoard;
+        if (!selectedBoard.brdno) {
+            this.brdtitle.value = "";
+            this.brdwriter.value = "";
+            return true;
+        }
+        this.brdtitle.value = selectedBoard.brdtitle;
+        this.brdwriter.value = selectedBoard.brdwriter;
+        return true;
     }
 
     handleSubmit = (e) => {
         e.preventDefault();
-        this.props.onSaveData(this.state);
-        this.setState({
-            brdno:'',
-            brdwriter:'',
-            brdtitle:''
-        });
+        let selectedBoard = this.props.selectedBoard;
+        let data = {
+            brdwriter: this.brdwriter.value,
+            brdtitle: this.brdtitle.value
+        }
+        if(selectedBoard.brdno) {
+            data.brdno = selectedBoard.brdno;
+            data.brddate = selectedBoard.brddate;
+        }
+
+        this.props.onSaveData(data);
+
+        //this.props.onSaveData(this.state);
+        // this.setState({
+        //     brdno:'',
+        //     brdwriter:'',
+        //     brdtitle:''
+        // });
     }
 
-    handleSelectRow = (row) => {
-        this.setState(row);
-    }
+    // handleSelectRow = (row) => {
+    //     this.setState(row);
+    // }
 
     render() {
         return (
             <form onSubmit={this.handleSubmit}>
-                <input placeholder="title" name="brdtitle" value={this.state.brdtitle} onChange={this.handleChange}/>
-                <input placeholder="name" name="brdwriter" value={this.state.brdwriter} onChange={this.handleChange}/>
+                {/*<input placeholder="title" name="brdtitle" value={this.state.brdtitle} onChange={this.handleChange}/>*/}
+                {/*<input placeholder="name" name="brdwriter" value={this.state.brdwriter} onChange={this.handleChange}/>*/}
+                <input placeholder="title" ref={node => this.brdtitle = node}/>
+                <input placeholder="name" ref={node => this.brdwriter = node}/>
                 <button type="submit">Save</button>
             </form>
         );
